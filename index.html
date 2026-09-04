@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扇形弧長與圓周長</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C2321">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="扇形弧長">
+<link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2F0;
+    --paper:#FFFFFF;
+    --ink:#1C2321;
+    --muted:#6B7472;
+    --line:#CBD6D1;
+    --red:#D62828;
+    --teal:#1B6B6B;
+    --teal-bg:#EAF3F2;
+    --blue:#2563EB;
+    --green:#16A34A;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:44px 24px 90px;
+    line-height:1.6;
+  }
+  .card{
+    width:100%;
+    max-width:1080px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:38px 44px 40px;
+  }
+  h1{
+    font-family:'Noto Serif TC', serif;
+    font-weight:700;
+    font-size:1.7rem;
+    margin:0 0 8px;
+    letter-spacing:.02em;
+  }
+  p.lede{
+    color:var(--muted);
+    font-size:1rem;
+    margin:0 0 8px;
+    max-width:720px;
+  }
+  .card-body{
+    display:flex;
+    align-items:flex-start;
+    gap:48px;
+    margin-top:26px;
+  }
+  .diagram-col{
+    flex:1 1 56%;
+    min-width:0;
+  }
+  .info-col{
+    flex:1 1 40%;
+    min-width:300px;
+    background:#FBFCFB;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:26px 28px;
+    align-self:stretch;
+  }
+  .control-block{
+    margin-bottom:16px;
+  }
+  .control-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .control-row label{
+    font-size:.98rem;
+    white-space:nowrap;
+    color:var(--ink);
+    min-width:50px;
+  }
+  input[type="range"]{
+    flex:1;
+    accent-color:var(--red);
+  }
+  #radiusSlider{ accent-color:var(--teal); }
+  #angleSlider2{ accent-color:var(--red); }
+  #radiusSlider2{ accent-color:var(--blue); }
+  label.red-label{ color:var(--red); }
+  label.blue-label{ color:var(--blue); }
+  .numfield.red-field{ border-color:var(--red); }
+  .numfield.red-field input[type="number"]{ color:var(--red); }
+  .numfield.blue-field{ border-color:var(--blue); }
+  .numfield.blue-field input[type="number"]{ color:var(--blue); }
+  .numfield.green-field{ border-color:var(--green); }
+  .numfield.green-field input[type="number"]{ color:var(--green); }
+  .numfield{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:4px 8px;
+    background:#FBFCFB;
+  }
+  .numfield input[type="number"]{
+    width:52px;
+    border:none;
+    background:transparent;
+    font-family:'Noto Serif TC', serif;
+    font-weight:700;
+    font-size:1rem;
+    color:var(--ink);
+    text-align:right;
+  }
+  .numfield input[type="number"]:focus{ outline:none; }
+  .numfield span{ font-size:.85rem; color:var(--muted); }
+  svg{
+    width:100%;
+    height:auto;
+    display:block;
+    margin:22px 0 8px;
+  }
+  .diagram-caption{
+    font-size:.82rem;
+    color:var(--muted);
+    text-align:center;
+    margin-bottom:18px;
+  }
+  button.straighten{
+    width:100%;
+    padding:12px;
+    font-size:.98rem;
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:500;
+    color:#fff;
+    background:var(--ink);
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  button.straighten:hover{ background:#000; }
+  button.straighten:disabled{ opacity:.5; cursor:default; }
+
+  .stats{
+    margin-top:0;
+    border-top:none;
+    padding-top:0;
+  }
+  .info-col > .stats:first-child .stat-line:first-child{
+    padding-top:0;
+  }
+  .stat-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:1rem;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .stat-line:last-child{ border-bottom:none; }
+  .stat-line .k{ color:var(--muted); }
+  .stat-line .v{ font-family:'Noto Serif TC', serif; font-weight:700; }
+  .formula-line{
+    font-size:.88rem;
+    color:var(--muted);
+    line-height:1.6;
+    padding:14px 0 2px;
+  }
+  .formula-line b{ color:var(--ink); font-weight:700; }
+
+  .proof{
+    display:block;
+    margin-top:18px;
+    background:var(--teal-bg);
+    border:1px solid var(--teal);
+    border-radius:4px;
+    padding:14px 16px;
+  }
+  .proof.show{
+    display:block;
+  }
+  .proof .row{
+    display:flex;
+    justify-content:space-between;
+    font-size:.92rem;
+    padding:3px 0;
+  }
+  .proof .row .lbl{ color:var(--ink); }
+  .proof .row .val{ font-family:'Noto Serif TC', serif; font-weight:700; color:var(--teal); text-align:right; min-width:110px; }
+  .proof .conclusion{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--teal);
+    font-size:.92rem;
+    font-weight:700;
+    color:var(--teal);
+    text-align:center;
+  }
+
+  @media (max-width: 860px){
+    .card{ padding:26px 22px 22px; }
+    .card-body{ flex-direction:column; gap:22px; }
+    .diagram-col, .info-col{ flex:1 1 auto; width:100%; }
+    .info-col{ align-self:stretch; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>扇形弧長與圓周長</h1>
+  <p class="lede">改變圓心角與半徑，觀察扇形與紅色弧長。按下按鈕，弧長和整個圓周長會一起從圓上拉直，方便比較。</p>
+
+  <div class="card-body">
+    <div class="diagram-col">
+      <div class="control-block">
+        <div class="control-row">
+          <label for="angleSlider">圓心角</label>
+          <input type="range" id="angleSlider" min="1" max="360" value="60" step="1">
+          <div class="numfield red-field">
+            <input type="number" id="angleInput" min="1" max="360" step="1" value="60">
+            <span>°</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-block">
+        <div class="control-row">
+          <label for="radiusSlider">半徑</label>
+          <input type="range" id="radiusSlider" min="5" max="100" value="10" step="0.5">
+          <div class="numfield green-field">
+            <input type="number" id="radiusInput" min="5" max="100" step="0.5" value="10">
+            <span>cm</span>
+          </div>
+        </div>
+      </div>
+
+      <svg id="diagram" viewBox="0 0 380 380" xmlns="http://www.w3.org/2000/svg">
+        <!-- full circle, black border -->
+        <circle id="circleOutline" cx="140" cy="115" r="45" fill="none" stroke="#DBDBDB" stroke-width="3"></circle>
+        <!-- sector fill + radii -->
+        <path id="sectorFill" fill="#FAD9D9" stroke="#1C2321" stroke-width="1.3"></path>
+        <!-- angle label -->
+        <text id="angleLabel" x="140" y="115" font-family="Noto Sans TC" font-size="12" fill="#1C2321" text-anchor="middle"></text>
+        <!-- the arc / red line, morphs between curved and straight -->
+        <polyline id="arcLine" fill="none" stroke="#D62828" stroke-width="4.5" stroke-linecap="round"></polyline>
+        <!-- the full circumference / teal line, morphs between tracing the circle and straight -->
+        <polyline id="circumLine" fill="none" stroke="#1B6B6B" stroke-width="3" stroke-linecap="round"></polyline>
+
+        <!-- comparison zone labels -->
+        <text id="arcLineLabel" x="20" y="238" font-size="11.5" font-weight="700" fill="#D62828" font-family="Noto Sans TC">弧長</text>
+        <text id="circumLineLabel" x="20" y="303" font-size="11.5" font-weight="700" fill="#1B6B6B" font-family="Noto Sans TC">圓周長</text>
+        <line id="tickGuide" x1="0" y1="0" x2="0" y2="0" stroke="#1C2321" stroke-width="1" stroke-dasharray="3 4" opacity="0"></line>
+      </svg>
+      <button class="straighten" id="straightenBtn">把弧長和圓周長一起拉直比較</button>
+    </div>
+
+    <div class="info-col">
+      <div class="stats">
+        <div class="stat-line"><span class="k">圓心角</span><span class="v" id="statAngle">60°</span></div>
+        <div class="stat-line"><span class="k">半徑</span><span class="v" id="statRadius">10 cm</span></div>
+        <div class="stat-line"><span class="k">弧長</span><span class="v" id="statArc">—</span></div>
+        <div class="stat-line"><span class="k">圓周長</span><span class="v" id="statCircum">—</span></div>
+        <div class="stat-line"><span class="k">扇形周長</span><span class="v" id="statPerimeter">—</span></div>
+      </div>
+
+      <div class="proof" id="proofBox">
+        <div class="row"><span class="lbl">圓心角° ÷ 360°</span><span class="val" id="proofRatioAngle">—</span></div>
+        <div class="row"><span class="lbl">弧長 ÷ 圓周長</span><span class="val" id="proofRatioArc">—</span></div>
+        <div class="conclusion">兩個比值相等 —— 弧長佔圓周的比例，跟圓心角佔 360° 的比例是一樣的</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:28px;">
+  <h1>扇形周長＝弧長＋兩個半徑</h1>
+  <p class="lede">扇形的周長是弧長加上兩條半徑。把紅色的弧長和藍色的兩條半徑一起拉直，接在一起，看看剛好等於「弧長＋直徑」。</p>
+
+  <div class="card-body">
+    <div class="diagram-col">
+      <div class="control-block">
+        <div class="control-row">
+          <label for="angleSlider2" class="red-label">圓心角</label>
+          <input type="range" id="angleSlider2" min="1" max="360" value="60" step="1">
+          <div class="numfield red-field">
+            <input type="number" id="angleInput2" min="1" max="360" step="1" value="60">
+            <span>°</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-block">
+        <div class="control-row">
+          <label for="radiusSlider2" class="blue-label">半徑</label>
+          <input type="range" id="radiusSlider2" min="5" max="100" value="10" step="0.5">
+          <div class="numfield blue-field">
+            <input type="number" id="radiusInput2" min="5" max="100" step="0.5" value="10">
+            <span>cm</span>
+          </div>
+        </div>
+      </div>
+
+      <svg id="diagram2" viewBox="0 0 480 380" xmlns="http://www.w3.org/2000/svg">
+        <circle id="circleOutline2" cx="140" cy="115" r="45" fill="none" stroke="#DBDBDB" stroke-width="3"></circle>
+        <path id="sectorFill2" fill="#FAD9D9" stroke="none"></path>
+        <line id="radiusLine1" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"></line>
+        <line id="radiusLine2" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"></line>
+        <polyline id="arcLine2" fill="none" stroke="#D62828" stroke-width="4.5" stroke-linecap="round"></polyline>
+        <text id="angleLabel2" x="140" y="115" font-family="Noto Sans TC" font-size="12" fill="#1C2321" text-anchor="middle"></text>
+        <circle id="junction1" r="4" fill="#1C2321" opacity="0"></circle>
+        <text id="arcSegLabel2" font-size="11.5" font-weight="700" fill="#D62828" font-family="Noto Sans TC" text-anchor="middle" opacity="0"></text>
+        <text id="radiusSegLabel2" font-size="11.5" font-weight="700" fill="#2563EB" font-family="Noto Sans TC" text-anchor="middle" opacity="0"></text>
+        <text id="combinedLabel2" x="20" y="220" font-size="11.5" font-weight="700" fill="#1C2321" font-family="Noto Sans TC">扇形周長＝弧長＋兩個半徑</text>
+      </svg>
+
+      <button class="straighten" id="straightenBtn2">把弧長和兩條半徑拉直，組成扇形周長</button>
+    </div>
+
+    <div class="info-col">
+      <div class="stats">
+        <div class="stat-line"><span class="k">半徑</span><span class="v" id="statRadius2">—</span></div>
+        <div class="stat-line"><span class="k">直徑</span><span class="v" id="statDiameter2">—</span></div>
+        <div class="stat-line"><span class="k">弧長</span><span class="v" id="statArc2">—</span></div>
+        <div class="formula-line" id="perimeterFormula2">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const CX = 140, CY = 115;
+  const START_ANGLE = -90;
+  const N = 90;
+  const LINE_X0 = 20, LINE_Y = 262;
+  const REF_Y = 335;
+  const R_PX_MIN = 25, R_PX_MAX = 50;
+  const RADIUS_MIN_CM = 5, RADIUS_MAX_CM = 100;
+
+  const angleSlider = document.getElementById('angleSlider');
+  const angleInput = document.getElementById('angleInput');
+  const radiusSlider = document.getElementById('radiusSlider');
+  const radiusInput = document.getElementById('radiusInput');
+
+  const sectorFill = document.getElementById('sectorFill');
+  const arcLine = document.getElementById('arcLine');
+  const circumLine = document.getElementById('circumLine');
+  const circleOutline = document.getElementById('circleOutline');
+  const angleLabel = document.getElementById('angleLabel');
+  const tickGuide = document.getElementById('tickGuide');
+  const straightenBtn = document.getElementById('straightenBtn');
+
+  const statAngle = document.getElementById('statAngle');
+  const statRadius = document.getElementById('statRadius');
+  const statArc = document.getElementById('statArc');
+  const statCircum = document.getElementById('statCircum');
+  const statPerimeter = document.getElementById('statPerimeter');
+  const perimeterFormula = document.getElementById('perimeterFormula');
+  const arcLineLabel = document.getElementById('arcLineLabel');
+  const circumLineLabel = document.getElementById('circumLineLabel');
+  const proofBox = document.getElementById('proofBox');
+  const proofRatioAngle = document.getElementById('proofRatioAngle');
+  const proofRatioArc = document.getElementById('proofRatioArc');
+
+  let theta = parseFloat(angleSlider.value);
+  let radiusCm = parseFloat(radiusSlider.value);
+  let isStraight = false;
+  let animating = false;
+
+  function radiusToPx(rCm){
+    const t = (rCm - RADIUS_MIN_CM) / (RADIUS_MAX_CM - RADIUS_MIN_CM);
+    return R_PX_MIN + t * (R_PX_MAX - R_PX_MIN);
+  }
+
+  function polar(angDeg, r, cx, cy){
+    const a = angDeg * Math.PI / 180;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  }
+
+  function pointsToStr(pts){
+    return pts.map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' ');
+  }
+
+  function getArcPoints(t, rPx){
+    const pts = [];
+    for(let i = 0; i <= N; i++){
+      const a = START_ANGLE + t * (i / N);
+      pts.push(polar(a, rPx, CX, CY));
+    }
+    return pts;
+  }
+
+  function getStraightArcPoints(t, rPx){
+    const L = rPx * t * Math.PI / 180;
+    const pts = [];
+    for(let i = 0; i <= N; i++){
+      pts.push({ x: LINE_X0 + L * (i / N), y: LINE_Y });
+    }
+    return pts;
+  }
+
+  function getFullCirclePoints(rPx){
+    const pts = [];
+    const ringR = rPx - 3;
+    for(let i = 0; i <= N; i++){
+      const a = START_ANGLE + 360 * (i / N);
+      pts.push(polar(a, ringR, CX, CY));
+    }
+    return pts;
+  }
+
+  function getStraightCircumPoints(rPx){
+    const C = 2 * Math.PI * rPx;
+    const pts = [];
+    for(let i = 0; i <= N; i++){
+      pts.push({ x: LINE_X0 + C * (i / N), y: REF_Y });
+    }
+    return pts;
+  }
+
+  function sectorPathD(t, rPx){
+    const p1 = polar(START_ANGLE, rPx, CX, CY);
+    const p2 = polar(START_ANGLE + t, rPx, CX, CY);
+    const largeArc = t > 180 ? 1 : 0;
+    return 'M ' + CX + ' ' + CY + ' L ' + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2) +
+           ' A ' + rPx.toFixed(2) + ' ' + rPx.toFixed(2) + ' 0 ' + largeArc + ' 1 ' + p2.x.toFixed(2) + ' ' + p2.y.toFixed(2) + ' Z';
+  }
+
+  function updateTickPosition(t, rPx){
+    const L = rPx * t * Math.PI / 180;
+    const x = LINE_X0 + L;
+    tickGuide.setAttribute('x1', x.toFixed(2));
+    tickGuide.setAttribute('x2', x.toFixed(2));
+    tickGuide.setAttribute('y1', LINE_Y.toFixed(2));
+    tickGuide.setAttribute('y2', REF_Y.toFixed(2));
+  }
+
+  function updateAngleLabelPosition(t, rPx){
+    const mid = polar(START_ANGLE + t / 2, rPx * 0.55, CX, CY);
+    angleLabel.setAttribute('x', mid.x.toFixed(2));
+    angleLabel.setAttribute('y', mid.y.toFixed(2));
+    angleLabel.textContent = Math.round(t) + '°';
+  }
+
+  function updateStats(t, rCm){
+    const arcCm = rCm * t * Math.PI / 180;
+    const circumCm = 2 * Math.PI * rCm;
+    const perimeterCm = arcCm + 2 * rCm;
+
+    statAngle.textContent = Math.round(t) + '°';
+    statRadius.textContent = rCm.toFixed(1) + ' cm';
+    statArc.textContent = arcCm.toFixed(2) + ' cm';
+    statCircum.textContent = circumCm.toFixed(2) + ' cm';
+    statPerimeter.textContent = perimeterCm.toFixed(2) + ' cm';
+
+    const diameterCm = 2 * rCm;
+    if(perimeterFormula){
+      perimeterFormula.innerHTML = '扇形周長 = 弧長 + 2×半徑 = 弧長 + 直徑 = ' +
+        arcCm.toFixed(2) + ' + ' + diameterCm.toFixed(2) + ' ≈ <b>' + perimeterCm.toFixed(2) + ' cm</b>';
+    }
+
+    const ratioAngle = t / 360;
+    const ratioArc = arcCm / circumCm;
+    proofRatioAngle.textContent = Math.round(t) + '/360 ≈ ' + ratioAngle.toFixed(4);
+    proofRatioArc.textContent = arcCm.toFixed(2) + ' ÷ ' + circumCm.toFixed(2) + ' ≈ ' + ratioArc.toFixed(4);
+
+    arcLineLabel.textContent = '弧長 ≈ ' + arcCm.toFixed(2) + ' cm';
+    circumLineLabel.textContent = '圓周長 ≈ ' + circumCm.toFixed(2) + ' cm';
+  }
+
+  function redrawStatic(){
+    const rPx = radiusToPx(radiusCm);
+    circleOutline.setAttribute('r', rPx.toFixed(2));
+    sectorFill.setAttribute('d', sectorPathD(theta, rPx));
+    arcLine.setAttribute('points', pointsToStr(isStraight ? getStraightArcPoints(theta, rPx) : getArcPoints(theta, rPx)));
+    circumLine.setAttribute('points', pointsToStr(isStraight ? getStraightCircumPoints(rPx) : getFullCirclePoints(rPx)));
+    circumLine.style.opacity = isStraight ? 1 : 0.55;
+    updateAngleLabelPosition(theta, rPx);
+    updateTickPosition(theta, rPx);
+    updateStats(theta, radiusCm);
+  }
+
+  function easeInOutCubic(x){
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  }
+
+  function animateToggle(){
+    if(animating) return;
+    animating = true;
+    angleSlider.disabled = true;
+    angleInput.disabled = true;
+    radiusSlider.disabled = true;
+    radiusInput.disabled = true;
+    angleSlider2.disabled = true;
+    angleInput2.disabled = true;
+    radiusSlider2.disabled = true;
+    radiusInput2.disabled = true;
+    straightenBtn.disabled = true;
+
+    const rPx = radiusToPx(radiusCm);
+    const toStraight = !isStraight;
+
+    const arcStart = toStraight ? getArcPoints(theta, rPx) : getStraightArcPoints(theta, rPx);
+    const arcEnd = toStraight ? getStraightArcPoints(theta, rPx) : getArcPoints(theta, rPx);
+    const circStart = toStraight ? getFullCirclePoints(rPx) : getStraightCircumPoints(rPx);
+    const circEnd = toStraight ? getStraightCircumPoints(rPx) : getFullCirclePoints(rPx);
+
+    const duration = 950;
+    const t0 = performance.now();
+
+    updateTickPosition(theta, rPx);
+
+    function frame(now){
+      const raw = Math.min((now - t0) / duration, 1);
+      const e = easeInOutCubic(raw);
+
+      const arcPts = arcStart.map((p, i) => ({
+        x: p.x + (arcEnd[i].x - p.x) * e,
+        y: p.y + (arcEnd[i].y - p.y) * e
+      }));
+      arcLine.setAttribute('points', pointsToStr(arcPts));
+
+      const circPts = circStart.map((p, i) => ({
+        x: p.x + (circEnd[i].x - p.x) * e,
+        y: p.y + (circEnd[i].y - p.y) * e
+      }));
+      circumLine.setAttribute('points', pointsToStr(circPts));
+
+      const fadeOut = toStraight ? (1 - e) : e;
+      const fadeIn = toStraight ? e : (1 - e);
+      sectorFill.style.opacity = 0.15 + 0.85 * fadeOut;
+      angleLabel.style.opacity = fadeOut;
+      circumLine.style.opacity = 0.55 + 0.45 * fadeIn;
+      tickGuide.style.opacity = fadeIn;
+
+      if(raw < 1){
+        requestAnimationFrame(frame);
+      } else {
+        isStraight = toStraight;
+        animating = false;
+        angleSlider.disabled = false;
+        angleInput.disabled = false;
+        radiusSlider.disabled = false;
+        radiusInput.disabled = false;
+        angleSlider2.disabled = false;
+        angleInput2.disabled = false;
+        radiusSlider2.disabled = false;
+        radiusInput2.disabled = false;
+        straightenBtn.disabled = false;
+        straightenBtn.textContent = isStraight
+          ? '還原成圓形'
+          : '把弧長和圓周長一起拉直比較';
+        proofBox.classList.toggle('show', isStraight);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function setAngle(newVal, fromSlider){
+    let v = Math.round(newVal);
+    if(isNaN(v)) v = theta;
+    v = Math.max(1, Math.min(360, v));
+    theta = v;
+    angleSlider.value = v;
+    angleInput.value = v;
+    angleSlider2.value = v;
+    angleInput2.value = v;
+    redrawStatic();
+    if(typeof redrawStatic2 === 'function' && !animating2) redrawStatic2();
+  }
+
+  function setRadius(newVal){
+    let v = parseFloat(newVal);
+    if(isNaN(v)) v = radiusCm;
+    v = Math.max(RADIUS_MIN_CM, Math.min(RADIUS_MAX_CM, v));
+    radiusCm = v;
+    radiusSlider.value = v;
+    radiusInput.value = v;
+    radiusSlider2.value = v;
+    radiusInput2.value = v;
+    redrawStatic();
+    if(typeof redrawStatic2 === 'function' && !animating2) redrawStatic2();
+  }
+
+  angleSlider.addEventListener('input', () => setAngle(angleSlider.value));
+  angleInput.addEventListener('input', () => setAngle(angleInput.value));
+  angleInput.addEventListener('blur', () => setAngle(angleInput.value));
+
+  radiusSlider.addEventListener('input', () => setRadius(radiusSlider.value));
+  radiusInput.addEventListener('input', () => setRadius(radiusInput.value));
+  radiusInput.addEventListener('blur', () => setRadius(radiusInput.value));
+
+  straightenBtn.addEventListener('click', animateToggle);
+
+  /* ---------- Diagram 2: 扇形周長＝弧長＋直徑 ---------- */
+  const LINE_X0_2 = 20, LINE_Y2 = 262;
+
+  const sectorFill2 = document.getElementById('sectorFill2');
+  const arcLine2 = document.getElementById('arcLine2');
+  const radiusLine1 = document.getElementById('radiusLine1');
+  const radiusLine2 = document.getElementById('radiusLine2');
+  const circleOutline2 = document.getElementById('circleOutline2');
+  const angleLabel2 = document.getElementById('angleLabel2');
+  const junction1 = document.getElementById('junction1');
+  const arcSegLabel2 = document.getElementById('arcSegLabel2');
+  const radiusSegLabel2 = document.getElementById('radiusSegLabel2');
+  const combinedLabel2 = document.getElementById('combinedLabel2');
+  const straightenBtn2 = document.getElementById('straightenBtn2');
+
+  const statRadius2 = document.getElementById('statRadius2');
+  const statDiameter2 = document.getElementById('statDiameter2');
+  const statArc2 = document.getElementById('statArc2');
+  const perimeterFormula2 = document.getElementById('perimeterFormula2');
+
+  const angleSlider2 = document.getElementById('angleSlider2');
+  const angleInput2 = document.getElementById('angleInput2');
+  const radiusSlider2 = document.getElementById('radiusSlider2');
+  const radiusInput2 = document.getElementById('radiusInput2');
+
+  let isStraight2 = false;
+  let animating2 = false;
+
+  angleSlider2.addEventListener('input', () => setAngle(angleSlider2.value));
+  angleInput2.addEventListener('input', () => setAngle(angleInput2.value));
+  angleInput2.addEventListener('blur', () => setAngle(angleInput2.value));
+
+  radiusSlider2.addEventListener('input', () => setRadius(radiusSlider2.value));
+  radiusInput2.addEventListener('input', () => setRadius(radiusInput2.value));
+  radiusInput2.addEventListener('blur', () => setRadius(radiusInput2.value));
+
+  function getStraightSegmentPoints(x0, y, length){
+    const pts = [];
+    for(let i = 0; i <= N; i++){
+      pts.push({ x: x0 + length * (i / N), y: y });
+    }
+    return pts;
+  }
+
+  const LABEL_MARGIN = 4;
+  const LABEL_MAX_X = 480 - LABEL_MARGIN;
+
+  // Sets a label's text/position, then nudges it horizontally so it never
+  // spills past the left/right edge of the SVG (happens when the arc segment
+  // it's centered over is very short, e.g. small central angle).
+  function setClampedLabel(el, text, desiredX, y){
+    el.textContent = text;
+    el.setAttribute('x', desiredX.toFixed(2));
+    el.setAttribute('y', y.toFixed(2));
+    try{
+      const bbox = el.getBBox();
+      let dx = 0;
+      if(bbox.width > 0){
+        if(bbox.x < LABEL_MARGIN) dx = LABEL_MARGIN - bbox.x;
+        else if(bbox.x + bbox.width > LABEL_MAX_X) dx = LABEL_MAX_X - (bbox.x + bbox.width);
+      }
+      if(dx !== 0) el.setAttribute('x', (desiredX + dx).toFixed(2));
+    } catch(e){}
+  }
+
+  function updateAngleLabelPosition2(t, rPx){
+    const mid = polar(START_ANGLE + t / 2, rPx * 0.55, CX, CY);
+    angleLabel2.setAttribute('x', mid.x.toFixed(2));
+    angleLabel2.setAttribute('y', mid.y.toFixed(2));
+    angleLabel2.textContent = Math.round(t) + '°';
+  }
+
+  function updateStats2(t, rCm){
+    const arcCm = rCm * t * Math.PI / 180;
+    const diameterCm = 2 * rCm;
+    const perimeterCm = arcCm + diameterCm;
+
+    statRadius2.textContent = rCm.toFixed(1) + ' cm';
+    statDiameter2.textContent = diameterCm.toFixed(2) + ' cm';
+    statArc2.textContent = arcCm.toFixed(2) + ' cm';
+
+    perimeterFormula2.innerHTML = '扇形周長 = 弧長 + 2×半徑 = 弧長 + 直徑 = ' +
+      arcCm.toFixed(2) + ' + ' + diameterCm.toFixed(2) + ' ≈ <b>' + perimeterCm.toFixed(2) + ' cm</b>';
+
+    combinedLabel2.textContent = '扇形周長＝弧長＋兩個半徑 ≈ ' + perimeterCm.toFixed(2) + ' cm';
+  }
+
+  function redrawStatic2(){
+    const rPx = radiusToPx(radiusCm);
+    circleOutline2.setAttribute('r', rPx.toFixed(2));
+    sectorFill2.setAttribute('d', sectorPathD(theta, rPx));
+    updateAngleLabelPosition2(theta, rPx);
+    updateStats2(theta, radiusCm);
+
+    const p1 = polar(START_ANGLE, rPx, CX, CY);
+    const p2 = polar(START_ANGLE + theta, rPx, CX, CY);
+    const arcLenPx = rPx * theta * Math.PI / 180;
+
+    if(!isStraight2){
+      arcLine2.setAttribute('points', pointsToStr(getArcPoints(theta, rPx)));
+      radiusLine1.setAttribute('x1', CX); radiusLine1.setAttribute('y1', CY);
+      radiusLine1.setAttribute('x2', p1.x.toFixed(2)); radiusLine1.setAttribute('y2', p1.y.toFixed(2));
+      radiusLine2.setAttribute('x1', CX); radiusLine2.setAttribute('y1', CY);
+      radiusLine2.setAttribute('x2', p2.x.toFixed(2)); radiusLine2.setAttribute('y2', p2.y.toFixed(2));
+      junction1.setAttribute('cx', p1.x.toFixed(2));
+      junction1.setAttribute('cy', p1.y.toFixed(2));
+      arcSegLabel2.style.opacity = 0;
+      radiusSegLabel2.style.opacity = 0;
+    } else {
+      const x0 = LINE_X0_2 + arcLenPx;
+      const x1 = x0 + rPx;
+      const x2 = x1 + rPx;
+      arcLine2.setAttribute('points', pointsToStr(getStraightSegmentPoints(LINE_X0_2, LINE_Y2, arcLenPx)));
+      radiusLine1.setAttribute('x1', x0.toFixed(2)); radiusLine1.setAttribute('y1', LINE_Y2);
+      radiusLine1.setAttribute('x2', x1.toFixed(2)); radiusLine1.setAttribute('y2', LINE_Y2);
+      radiusLine2.setAttribute('x1', x1.toFixed(2)); radiusLine2.setAttribute('y1', LINE_Y2);
+      radiusLine2.setAttribute('x2', x2.toFixed(2)); radiusLine2.setAttribute('y2', LINE_Y2);
+      junction1.setAttribute('cx', x0.toFixed(2));
+      junction1.setAttribute('cy', LINE_Y2);
+
+      const arcCmVal = radiusCm * theta * Math.PI / 180;
+      const diameterCmVal = 2 * radiusCm;
+      setClampedLabel(arcSegLabel2, '弧長 ≈ ' + arcCmVal.toFixed(2) + ' cm', LINE_X0_2 + arcLenPx / 2, LINE_Y2 - 12);
+      arcSegLabel2.style.opacity = 1;
+
+      setClampedLabel(radiusSegLabel2, '兩個半徑 ≈ ' + diameterCmVal.toFixed(2) + ' cm', x1, LINE_Y2 + 20);
+      radiusSegLabel2.style.opacity = 1;
+    }
+  }
+
+  function animateToggle2(){
+    if(animating2) return;
+    animating2 = true;
+    angleSlider.disabled = true;
+    angleInput.disabled = true;
+    radiusSlider.disabled = true;
+    radiusInput.disabled = true;
+    angleSlider2.disabled = true;
+    angleInput2.disabled = true;
+    radiusSlider2.disabled = true;
+    radiusInput2.disabled = true;
+    straightenBtn2.disabled = true;
+
+    const rPx = radiusToPx(radiusCm);
+    const toStraight = !isStraight2;
+    const arcLenPx = rPx * theta * Math.PI / 180;
+
+    const p1 = polar(START_ANGLE, rPx, CX, CY);
+    const p2 = polar(START_ANGLE + theta, rPx, CX, CY);
+    const sx0 = LINE_X0_2 + arcLenPx;
+    const sx1 = sx0 + rPx;
+    const sx2 = sx1 + rPx;
+
+    const arcCurved = getArcPoints(theta, rPx);
+    const arcStraight = getStraightSegmentPoints(LINE_X0_2, LINE_Y2, arcLenPx);
+    const arcStart = toStraight ? arcCurved : arcStraight;
+    const arcEnd = toStraight ? arcStraight : arcCurved;
+
+    const r1Curved = { x1: CX, y1: CY, x2: p1.x, y2: p1.y };
+    const r1Straight = { x1: sx0, y1: LINE_Y2, x2: sx1, y2: LINE_Y2 };
+    const r1Start = toStraight ? r1Curved : r1Straight;
+    const r1End = toStraight ? r1Straight : r1Curved;
+
+    const r2Curved = { x1: CX, y1: CY, x2: p2.x, y2: p2.y };
+    const r2Straight = { x1: sx1, y1: LINE_Y2, x2: sx2, y2: LINE_Y2 };
+    const r2Start = toStraight ? r2Curved : r2Straight;
+    const r2End = toStraight ? r2Straight : r2Curved;
+
+    const arcCmVal = radiusCm * theta * Math.PI / 180;
+    const diameterCmVal = 2 * radiusCm;
+    setClampedLabel(arcSegLabel2, '弧長 ≈ ' + arcCmVal.toFixed(2) + ' cm', LINE_X0_2 + arcLenPx / 2, LINE_Y2 - 12);
+
+    setClampedLabel(radiusSegLabel2, '兩個半徑 ≈ ' + diameterCmVal.toFixed(2) + ' cm', sx1, LINE_Y2 + 20);
+
+    const duration = 950;
+    const t0 = performance.now();
+
+    function frame(now){
+      const raw = Math.min((now - t0) / duration, 1);
+      const e = easeInOutCubic(raw);
+
+      const arcPts = arcStart.map((p, i) => ({
+        x: p.x + (arcEnd[i].x - p.x) * e,
+        y: p.y + (arcEnd[i].y - p.y) * e
+      }));
+      arcLine2.setAttribute('points', pointsToStr(arcPts));
+
+      const r1x1 = r1Start.x1 + (r1End.x1 - r1Start.x1) * e;
+      const r1y1 = r1Start.y1 + (r1End.y1 - r1Start.y1) * e;
+      const r1x2 = r1Start.x2 + (r1End.x2 - r1Start.x2) * e;
+      const r1y2 = r1Start.y2 + (r1End.y2 - r1Start.y2) * e;
+      radiusLine1.setAttribute('x1', r1x1.toFixed(2));
+      radiusLine1.setAttribute('y1', r1y1.toFixed(2));
+      radiusLine1.setAttribute('x2', r1x2.toFixed(2));
+      radiusLine1.setAttribute('y2', r1y2.toFixed(2));
+
+      const r2x1 = r2Start.x1 + (r2End.x1 - r2Start.x1) * e;
+      const r2y1 = r2Start.y1 + (r2End.y1 - r2Start.y1) * e;
+      const r2x2 = r2Start.x2 + (r2End.x2 - r2Start.x2) * e;
+      const r2y2 = r2Start.y2 + (r2End.y2 - r2Start.y2) * e;
+      radiusLine2.setAttribute('x1', r2x1.toFixed(2));
+      radiusLine2.setAttribute('y1', r2y1.toFixed(2));
+      radiusLine2.setAttribute('x2', r2x2.toFixed(2));
+      radiusLine2.setAttribute('y2', r2y2.toFixed(2));
+
+      junction1.setAttribute('cx', r1x1.toFixed(2));
+      junction1.setAttribute('cy', r1y1.toFixed(2));
+
+      const fadeOut = toStraight ? (1 - e) : e;
+      const fadeIn = toStraight ? e : (1 - e);
+      sectorFill2.style.opacity = 0.2 + 0.8 * fadeOut;
+      angleLabel2.style.opacity = fadeOut;
+      junction1.style.opacity = fadeIn;
+      arcSegLabel2.style.opacity = fadeIn;
+      radiusSegLabel2.style.opacity = fadeIn;
+
+      if(raw < 1){
+        requestAnimationFrame(frame);
+      } else {
+        isStraight2 = toStraight;
+        animating2 = false;
+        angleSlider.disabled = false;
+        angleInput.disabled = false;
+        radiusSlider.disabled = false;
+        radiusInput.disabled = false;
+        angleSlider2.disabled = false;
+        angleInput2.disabled = false;
+        radiusSlider2.disabled = false;
+        radiusInput2.disabled = false;
+        straightenBtn2.disabled = false;
+        straightenBtn2.textContent = isStraight2
+          ? '還原成扇形'
+          : '把弧長和兩條半徑拉直，組成扇形周長';
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  straightenBtn2.addEventListener('click', animateToggle2);
+
+  redrawStatic2();
+
+  // initial render
+  redrawStatic();
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
